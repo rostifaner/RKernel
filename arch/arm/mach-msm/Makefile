@@ -391,7 +391,11 @@ obj-$(CONFIG_MSM_CPU_PWRCTL) +=  msm_cpu_pwrctl.o
 
 obj-$(CONFIG_ARCH_RANDOM) += early_random.o
 
+<<<<<<< HEAD
 obj-$(CONFIG_FORCE_FAST_CHARGE) += fastchg.o
 obj-$(CONFIG_INTELLI_PLUG) += intelli_plug.o
 obj-$(CONFIG_ALUCARD_HOTPLUG) += alucard_hotplug.o
 obj-$(CONFIG_MSM_HOTPLUG) += msm_hotplug.o
+=======
+obj-$(CONFIG_HAS_MACH_MEMUTILS) += memutils/
+>>>>>>> 2c4b169... msm: memutils: memcpy, memmove, copy_page optimization
