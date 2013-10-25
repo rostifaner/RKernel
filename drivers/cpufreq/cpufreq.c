@@ -736,13 +736,13 @@ static ssize_t store_vdd_levels(struct kobject *a, struct attribute *b, const ch
 
 #endif        /* CONFIG_CPU_VOLTAGE_TABLE */
 
-ssize_t show_GPU_mV_table(struct cpufreq_policy *policy, char *buf)
+ssize_t show_gpu_mv_table(struct cpufreq_policy *policy, char *buf)
 {
         int modu = 0;
         return get_gpu_vdd_levels_str(buf);
 }
 
-ssize_t store_GPU_mV_table(struct cpufreq_policy *policy, const char *buf, size_t count)
+ssize_t store_gpu_mv_table(struct cpufreq_policy *policy, const char *buf, size_t count)
 {
         unsigned int ret = -EINVAL;
         unsigned int u[3];
@@ -769,7 +769,7 @@ cpufreq_freq_attr_rw(scaling_setspeed);
 #ifdef CONFIG_CPU_VOLTAGE_TABLE
 define_one_global_rw(vdd_levels);
 #endif
-cpufreq_freq_attr_rw(GPU_mV_table);
+cpufreq_freq_attr_rw(gpu_mv_table);
 
 static struct attribute *default_attrs[] = {
 	&cpuinfo_min_freq.attr,
@@ -784,7 +784,7 @@ static struct attribute *default_attrs[] = {
 	&scaling_driver.attr,
 	&scaling_available_governors.attr,
 	&scaling_setspeed.attr,
-	&GPU_mV_table.attr,
+	&gpu_mv_table.attr,
 	NULL
 };
 
