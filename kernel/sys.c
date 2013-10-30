@@ -2125,9 +2125,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
 			error = put_user(me->signal->is_child_subreaper,
 					 (int __user *) arg2);
 			break;
-		case PR_SET_VMA:
-			error = prctl_set_vma(arg2, arg3, arg4, arg5);
-			break;
 		case PR_SET_TIMERSLACK_PID:
 			rcu_read_lock();
 			tsk = find_task_by_pid_ns((pid_t)arg3, &init_pid_ns);
@@ -2155,6 +2152,9 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
 			if (arg2 || arg3 || arg4 || arg5)
 				return -EINVAL;
 			return task_no_new_privs(current) ? 1 : 0;
+		case PR_SET_VMA:
+			error = prctl_set_vma(arg2, arg3, arg4, arg5);
+			break;
 		default:
 			error = -EINVAL;
 			break;
