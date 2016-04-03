@@ -175,10 +175,6 @@ static struct acpu_level acpu_freq_tbl_slow[] __initdata = {
 	{ 0, {  1404000, HFPLL, 1, 0x34 }, L2(15), 1237500 },
 	{ 1, {  1458000, HFPLL, 1, 0x36 }, L2(15), 1237500 },
 	{ 1, {  1512000, HFPLL, 1, 0x38 }, L2(15), 1250000 },
-<<<<<<< HEAD
-=======
-	{ 1, {  1620000, HFPLL, 1, 0x3C }, L2(15), 1300000 },
->>>>>>> parent of 03309a7... overclock to 1.7Ghz
 	{ 0, { 0 } }
 };
 
@@ -205,10 +201,6 @@ static struct acpu_level acpu_freq_tbl_nom[] __initdata = {
 	{ 0, {  1404000, HFPLL, 1, 0x34 }, L2(15), 1187500 },
 	{ 1, {  1458000, HFPLL, 1, 0x36 }, L2(15), 1187500 },
 	{ 1, {  1512000, HFPLL, 1, 0x38 }, L2(15), 1200000 },
-<<<<<<< HEAD
-=======
-	{ 1, {  1620000, HFPLL, 1, 0x3C }, L2(15), 1250000 },
->>>>>>> parent of 03309a7... overclock to 1.7Ghz
 	{ 0, { 0 } }
 };
 
@@ -235,10 +227,6 @@ static struct acpu_level acpu_freq_tbl_fast[] __initdata = {
 	{ 0, {  1404000, HFPLL, 1, 0x34 }, L2(15), 1137500 },
 	{ 1, {  1458000, HFPLL, 1, 0x36 }, L2(15), 1137500 },
 	{ 1, {  1512000, HFPLL, 1, 0x38 }, L2(15), 1150000 },
-<<<<<<< HEAD
-=======
-	{ 1, {  1620000, HFPLL, 1, 0x3C }, L2(15), 1200000 },
->>>>>>> parent of 03309a7... overclock to 1.7Ghz
 	{ 0, { 0 } }
 };
 
