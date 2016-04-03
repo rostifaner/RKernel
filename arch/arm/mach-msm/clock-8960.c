@@ -385,9 +385,9 @@ enum vdd_dig_levels {
 
 static int vdd_uv[] = {
   [VDD_DIG_NONE]    =       0,
-  [VDD_DIG_LOW]     =  945000,
-  [VDD_DIG_NOMINAL] = 1050000,
-  [VDD_DIG_HIGH]    = 1150000
+  [VDD_DIG_LOW]     =  930000,
+  [VDD_DIG_NOMINAL] = 1000000,
+  [VDD_DIG_HIGH]    = 1100000
 };
 
 ssize_t get_gpu_vdd_levels_str(char *buf)
