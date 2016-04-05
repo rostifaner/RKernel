@@ -2614,13 +2614,19 @@ config FORCE_FAST_CHARGE
 	bool "Force AC charge mode at will"
 	default y
 	help
-		A simple sysfs interface to force adapters that
-		are detected as USB to charge as AC.
+	  A simple sysfs interface to force adapters that
+          are detected as USB to charge as AC.
 
 config INTELLI_PLUG
 	bool "intelliplug hotplug"
 	default y
 	help
-		An improved hotplug by faux123.
+	  An improved hotplug by faux123.
+  
+config ALUCARD_HOTPLUG
+	bool "Enable alucard-hotplug cpu hotplug driver"
+ 	default y
+ 	help
+	  Generic Alucard-hotplug cpu hotplug driver for ARM SOCs
 
 endif
