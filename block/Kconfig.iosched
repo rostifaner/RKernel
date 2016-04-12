@@ -32,6 +32,12 @@ config IOSCHED_DEADLINE
 	  a new point in the service tree and doing a batch of IO from there
 	  in case of expiry.
 
+config IOSCHED_TRIPNDROID
+	tristate "tripndroid"
+	default y
+	---help---
+	The Trip N Droid scheduler
+
 config IOSCHED_CFQ
 	tristate "CFQ I/O scheduler"
 	# If BLK_CGROUP is a module, CFQ has to be built as module.
@@ -113,13 +119,15 @@ choice
 	config DEFAULT_NOOP
 		bool "No-op"
 
-endchoice
+	config DEFAULT_TRIPNDROID
+                bool "tripndroid" if IOSCHED_TRIPNDROID=y
 
 config DEFAULT_IOSCHED
 	string
 	default "deadline" if DEFAULT_DEADLINE
 	default "cfq" if DEFAULT_CFQ
 	default "fiops" if DEFAULT_FIOPS
+	default "tripndroid" if DEFAULT_TRIPNDROID
 	default "bfq" if DEFAULT_BFQ
 	default "noop" if DEFAULT_NOOP
 
