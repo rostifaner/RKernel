@@ -1594,7 +1594,7 @@ endif # CPU_FREQ_MSM
 config BRICKED_HOTPLUG
 	bool "Enable kernel based mpdecision"
 	depends on MSM_RUN_QUEUE_STATS
-	default n
+	default y
 	help
 	  This enables kernel based multi core control.
 	  (up/down hotplug based on load)
