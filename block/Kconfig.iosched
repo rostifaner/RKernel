@@ -122,6 +122,8 @@ choice
 	config DEFAULT_TRIPNDROID
                 bool "tripndroid" if IOSCHED_TRIPNDROID=y
 
+endchoice
+
 config DEFAULT_IOSCHED
 	string
 	default "deadline" if DEFAULT_DEADLINE
