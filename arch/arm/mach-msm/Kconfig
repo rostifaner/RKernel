@@ -2603,7 +2603,6 @@ config MSM_USE_USER_ACCESSIBLE_TIMERS
 	  Enables MSM-specific user accessible timers via a shared
 	  memory page containing the cycle counter.
 
-<<<<<<< HEAD
 config FORCE_FAST_CHARGE
 	bool "Force AC charge mode at will"
 	default y
@@ -2630,12 +2629,11 @@ config MSM_HOTPLUG
 	help
 	  The MSM hotplug driver controls on-/offlining of additional cores based
 	  on current cpu load.
-=======
+
 config HAS_MACH_MEMUTILS
 	default n
 	bool "Motorola MSM memcpy enhancements"
 	help
 	Faster memcpy performance for Krait
->>>>>>> 2c4b169... msm: memutils: memcpy, memmove, copy_page optimization
 
 endif
