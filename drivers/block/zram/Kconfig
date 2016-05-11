@@ -1,9 +1,6 @@
 config ZRAM
 	tristate "Compressed RAM block device support"
-	# X86 dependency is because zsmalloc uses non-portable pte/tlb
-	# functions
-	depends on BLOCK && SYSFS && X86
-	select ZSMALLOC
+	depends on BLOCK && SYSFS && ZSMALLOC
 	select LZO_COMPRESS
 	select LZO_DECOMPRESS
 	default n
@@ -17,9 +14,6 @@ config ZRAM
 	  disks and maybe many more.
 
 	  See zram.txt for more information.
-<<<<<<< HEAD:drivers/staging/zram/Kconfig
-	  Project home: http://compcache.googlecode.com/
-=======
 
 config ZRAM_LZ4_COMPRESS
 	bool "Enable LZ4 algorithm support"
@@ -30,7 +24,6 @@ config ZRAM_LZ4_COMPRESS
 	help
 	  This option enables LZ4 compression algorithm support. Compression
 	  algorithm can be changed using `comp_algorithm' device attribute.
->>>>>>> bb507e4... Rebase zram and zsmalloc from 3.15.:drivers/block/zram/Kconfig
 
 config ZRAM_DEBUG
 	bool "Compressed RAM block device debug support"
