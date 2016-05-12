@@ -31,6 +31,7 @@
 #include <linux/memcontrol.h>
 #include <linux/poll.h>
 #include <linux/oom.h>
+#include <linux/export.h>
 
 #include <asm/pgtable.h>
 #include <asm/tlbflush.h>
@@ -70,6 +71,26 @@ static inline unsigned char swap_count(unsigned char ent)
 	return ent & ~SWAP_HAS_CACHE;	/* may include SWAP_HAS_CONT flag */
 }
 
+bool is_swap_fast(swp_entry_t entry)
+{
+	struct swap_info_struct *p;
+	unsigned long type;
+
+	if (non_swap_entry(entry))
+		return false;
+
+	type = swp_type(entry);
+	if (type >= nr_swapfiles)
+		return false;
+
+	p = swap_info[type];
+
+	if (p->flags & SWP_FAST)
+		return true;
+
+	return false;
+}
+
 /* returns 1 if swap entry is freed */
 static int
 __try_to_reclaim_swap(struct swap_info_struct *si, unsigned long offset)
@@ -78,7 +99,7 @@ __try_to_reclaim_swap(struct swap_info_struct *si, unsigned long offset)
 	struct page *page;
 	int ret = 0;
 
-	page = find_get_page(&swapper_space, entry.val);
+	page = find_get_page(swap_address_space(entry), entry.val);
 	if (!page)
 		return 0;
 	/*
@@ -290,7 +311,7 @@ checks:
 		scan_base = offset = si->lowest_bit;
 
 	/* reuse swap entry of cache-only swap if not busy. */
-	if (vm_swap_full() && si->swap_map[offset] == SWAP_HAS_CACHE) {
+	if (vm_swap_full(si) && si->swap_map[offset] == SWAP_HAS_CACHE) {
 		int swap_was_freed;
 		spin_unlock(&si->lock);
 		swap_was_freed = __try_to_reclaim_swap(si, offset);
@@ -379,7 +400,8 @@ scan:
 			spin_lock(&si->lock);
 			goto checks;
 		}
-		if (vm_swap_full() && si->swap_map[offset] == SWAP_HAS_CACHE) {
+		if (vm_swap_full(si) &&
+			si->swap_map[offset] == SWAP_HAS_CACHE) {
 			spin_lock(&si->lock);
 			goto checks;
 		}
@@ -394,7 +416,8 @@ scan:
 			spin_lock(&si->lock);
 			goto checks;
 		}
-		if (vm_swap_full() && si->swap_map[offset] == SWAP_HAS_CACHE) {
+		if (vm_swap_full(si) &&
+			si->swap_map[offset] == SWAP_HAS_CACHE) {
 			spin_lock(&si->lock);
 			goto checks;
 		}
@@ -650,7 +673,7 @@ void swapcache_free(swp_entry_t entry, struct page *page)
  * This does not give an exact answer when swap count is continued,
  * but does include the high COUNT_CONTINUED flag to allow for that.
  */
-static inline int page_swapcount(struct page *page)
+int page_swapcount(struct page *page)
 {
 	int count = 0;
 	struct swap_info_struct *p;
@@ -742,7 +765,8 @@ int free_swap_and_cache(swp_entry_t entry)
 	p = swap_info_get(entry);
 	if (p) {
 		if (swap_entry_free(p, entry, 1) == SWAP_HAS_CACHE) {
-			page = find_get_page(&swapper_space, entry.val);
+			page = find_get_page(swap_address_space(entry),
+						entry.val);
 			if (page && !trylock_page(page)) {
 				page_cache_release(page);
 				page = NULL;
@@ -756,7 +780,8 @@ int free_swap_and_cache(swp_entry_t entry)
 		 * Also recheck PageSwapCache now page is locked (above).
 		 */
 		if (PageSwapCache(page) && !PageWriteback(page) &&
-				(!page_mapped(page) || vm_swap_full())) {
+				(!page_mapped(page) ||
+				vm_swap_full(page_swap_info(page)))) {
 			delete_from_swap_cache(page);
 			SetPageDirty(page);
 		}
@@ -765,37 +790,6 @@ int free_swap_and_cache(swp_entry_t entry)
 	}
 	return p != NULL;
 }
-
-#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-/**
- * mem_cgroup_count_swap_user - count the user of a swap entry
- * @ent: the swap entry to be checked
- * @pagep: the pointer for the swap cache page of the entry to be stored
- *
- * Returns the number of the user of the swap entry. The number is valid only
- * for swaps of anonymous pages.
- * If the entry is found on swap cache, the page is stored to pagep with
- * refcount of it being incremented.
- */
-int mem_cgroup_count_swap_user(swp_entry_t ent, struct page **pagep)
-{
-	struct page *page;
-	struct swap_info_struct *p;
-	int count = 0;
-
-	page = find_get_page(&swapper_space, ent.val);
-	if (page)
-		count += page_mapcount(page);
-	p = swap_info_get(ent);
-	if (p) {
-		count += swap_count(p->swap_map[swp_offset(ent)]);
-		spin_unlock(&swap_lock);
-	}
-
-	*pagep = page;
-	return count;
-}
-#endif
 
 #ifdef CONFIG_HIBERNATION
 /*
@@ -2168,7 +2162,11 @@ SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
 		}
 		if ((swap_flags & SWAP_FLAG_DISCARD) && discard_swap(p) == 0)
 			p->flags |= SWP_DISCARDABLE;
+
 	}
+
+	if (p->bdev && blk_queue_fast(bdev_get_queue(p->bdev)))
+		p->flags |= SWP_FAST;
 
 	mutex_lock(&swapon_mutex);
 	prio = -1;
@@ -2349,6 +2347,31 @@ int swapcache_prepare(swp_entry_t entry)
 {
 	return __swap_duplicate(entry, SWAP_HAS_CACHE);
 }
+
+struct swap_info_struct *page_swap_info(struct page *page)
+{
+	swp_entry_t swap = { .val = page_private(page) };
+	BUG_ON(!PageSwapCache(page));
+	return swap_info[swp_type(swap)];
+}
+
+/*
+ * out-of-line __page_file_ methods to avoid include hell.
+ */
+struct address_space *__page_file_mapping(struct page *page)
+{
+	VM_BUG_ON(!PageSwapCache(page));
+	return page_swap_info(page)->swap_file->f_mapping;
+}
+EXPORT_SYMBOL_GPL(__page_file_mapping);
+
+pgoff_t __page_file_index(struct page *page)
+{
+	swp_entry_t swap = { .val = page_private(page) };
+	VM_BUG_ON(!PageSwapCache(page));
+	return swp_offset(swap);
+}
+EXPORT_SYMBOL_GPL(__page_file_index);
 
 /*
  * add_swap_count_continuation - called when a swap count is duplicated

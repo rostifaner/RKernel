@@ -10,6 +10,11 @@
 #include <linux/mutex.h>
 #include <linux/memcontrol.h>
 
+extern int isolate_lru_page(struct page *page);
+extern void putback_lru_page(struct page *page);
+extern unsigned long reclaim_pages_from_list(struct list_head *page_list,
+					     struct vm_area_struct *vma);
+
 /*
  * The anon_vma heads a list of private "related" vmas, to scan if
  * an anonymous page pointing to this anon_vma needs to be unmapped:
@@ -65,6 +70,17 @@ struct anon_vma_chain {
 	struct anon_vma *anon_vma;
 	struct list_head same_vma;   /* locked by mmap_sem & page_table_lock */
 	struct list_head same_anon_vma;	/* locked by anon_vma->mutex */
+};
+
+enum ttu_flags {
+	TTU_UNMAP = 0,			/* unmap mode */
+	TTU_MIGRATION = 1,		/* migration mode */
+	TTU_MUNLOCK = 2,		/* munlock mode */
+	TTU_ACTION_MASK = 0xff,
+
+	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
+	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
+	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
 };
 
 #ifdef CONFIG_MMU
@@ -161,21 +177,12 @@ int page_referenced(struct page *, int is_locked,
 int page_referenced_one(struct page *, struct vm_area_struct *,
 	unsigned long address, unsigned int *mapcount, unsigned long *vm_flags);
 
-enum ttu_flags {
-	TTU_UNMAP = 0,			/* unmap mode */
-	TTU_MIGRATION = 1,		/* migration mode */
-	TTU_MUNLOCK = 2,		/* munlock mode */
-	TTU_ACTION_MASK = 0xff,
-
-	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
-	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
-	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
-};
 #define TTU_ACTION(x) ((x) & TTU_ACTION_MASK)
 
 bool is_vma_temporary_stack(struct vm_area_struct *vma);
 
-int try_to_unmap(struct page *, enum ttu_flags flags);
+int try_to_unmap(struct page *, enum ttu_flags flags,
+			struct vm_area_struct *vma);
 int try_to_unmap_one(struct page *, struct vm_area_struct *,
 			unsigned long address, enum ttu_flags flags);
 
@@ -242,7 +249,7 @@ static inline int page_referenced(struct page *page, int is_locked,
 	return 0;
 }
 
-#define try_to_unmap(page, refs) SWAP_FAIL
+#define try_to_unmap(page, refs, vma) SWAP_FAIL
 
 static inline int page_mkclean(struct page *page)
 {
