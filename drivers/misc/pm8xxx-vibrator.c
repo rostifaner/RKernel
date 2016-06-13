@@ -53,9 +53,10 @@ static ssize_t pm8xxx_level_show(struct device *dev,
 {
 	struct timed_output_dev *tdev = dev_get_drvdata(dev);
 	struct pm8xxx_vib *vib = container_of(tdev, struct pm8xxx_vib,
-							 timed_dev);
+					      timed_dev);
 
-	return scnprintf(buf, PAGE_SIZE, "%d\n", vib->level);
+	dev_info(dev, "vib_level_show %d.\n", vib->level);
+	return snprintf(buf, PAGE_SIZE, "%d\n", vib->level);
 }
 
 static ssize_t pm8xxx_level_store(struct device *dev,
